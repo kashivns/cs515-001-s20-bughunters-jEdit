@@ -44,7 +44,7 @@
 
 	<!-- Ivy Properties -->
 	<property name="config.ivy.version"
-		  value="2.2.0"/>
+		  value="2.5.0"/>
 	<property name="ivy.jar.dir"
 		  location="${lib.dir}/ivy"/>
 	<property name="ivy.jar.filename"
@@ -107,7 +107,7 @@
 		depends="init,check-ivy"
 		unless="ivy.jar.present">
 		<mkdir dir="${ivy.jar.dir}"/>
-		<get src="http://repo2.maven.org/maven2/org/apache/ivy/ivy/${config.ivy.version}/ivy-${config.ivy.version}.jar"
+		<get src="https://repo1.maven.org/maven2/org/apache/ivy/ivy/${config.ivy.version}/ivy-${config.ivy.version}.jar"
 		     dest="${ivy.jar.file}"
 		     usetimestamp="true"/>
 	</target>
