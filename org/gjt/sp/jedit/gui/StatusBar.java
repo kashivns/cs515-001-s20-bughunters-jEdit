@@ -354,7 +354,8 @@ public class StatusBar extends JPanel
 
 			int caretPosition = textArea.getCaretPosition();
 			int currLine = textArea.getCaretLine();
-
+			int wordOffset [] = doWordCount(buffer.getText(), caretPosition);
+			//Log.log(Log.DEBUG, StatusBar.class, "word offset = " + wordOffset[0] + " file words = " + wordOffset[1]);
 			// there must be a better way of fixing this...
 			// the problem is that this method can sometimes
 			// be called as a result of a text area scroll
@@ -418,11 +419,56 @@ public class StatusBar extends JPanel
 				buf.append(bufferLength);
 				buf.append(')');
 			}
+			if (jEdit.getBooleanProperty("view.status.show-caret-word-offset", true))
+			{
+				buf.append('(');
+				buf.append(wordOffset[0]);
+				buf.append('/');
+				buf.append(wordOffset[1]);
+				buf.append(')');
+			}
 
 			caretStatus.setText(buf.toString());
 			buf.setLength(0);
 		}
 	} //}}}
+
+	public int[] doWordCount(String text, int currIndex)
+	{
+		int wordValues[] = new int[2];
+		char[] chars = text.toCharArray();
+		int characters = chars.length;
+		int words = 0;
+		int lines = 1;
+		int characterIndex = 0;
+		boolean word = true;
+		for (char aChar : chars)
+		{
+			switch (aChar)
+			{
+				case '\r':
+				case '\n':
+					lines++;
+				case ' ':
+				case '\t':
+					word = true;
+					break;
+				default:
+					if (word)
+					{
+						words++;
+						word = false;
+					}
+					break;
+			}
+			characterIndex ++;
+			if(characterIndex == currIndex){
+				wordValues[0] = words;
+			}
+		}
+		wordValues[1] = words;
+		return wordValues;
+	}
 
 	//{{{ updateBufferStatus() method
 	public void updateBufferStatus()
