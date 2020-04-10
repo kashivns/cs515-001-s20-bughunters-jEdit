@@ -59,7 +59,37 @@ public class BufferHistory
 
 		public Selection[] getSelection()
 		{
-			return stringToSelection(selection);
+			if(selection == null)
+				return null;
+
+			List<Selection> selectionList = new ArrayList<Selection>();
+			StringTokenizer st = new StringTokenizer(selection);
+
+			while(st.hasMoreTokens())
+			{
+				String type = st.nextToken();
+				int start = Integer.parseInt(st.nextToken());
+				int end = Integer.parseInt(st.nextToken());
+				if(end < start)
+				{
+					// I'm not sure when this can happen,
+					// but it does sometimes, witness the
+					// jEdit bug tracker.
+					continue;
+				}
+
+				Selection sel;
+				if("range".equals(type))
+					sel = new Selection.Range(start,end);
+				else //if(type.equals("rect"))
+					sel = new Selection.Rect(start,end);
+
+				selectionList.add(sel);
+			}
+
+			Selection[] returnValue = new Selection[selectionList.size()];
+			returnValue = selectionList.toArray(returnValue);
+			return returnValue;
 		}
 
 		public Entry(String path, int caret, String selection, String encoding, String mode)
@@ -356,42 +386,6 @@ public class BufferHistory
 		}
 
 		return buf.toString();
-	} //}}}
-
-	//{{{ stringToSelection() method
-	private static Selection[] stringToSelection(String s)
-	{
-		if(s == null)
-			return null;
-
-		List<Selection> selection = new ArrayList<Selection>();
-		StringTokenizer st = new StringTokenizer(s);
-
-		while(st.hasMoreTokens())
-		{
-			String type = st.nextToken();
-			int start = Integer.parseInt(st.nextToken());
-			int end = Integer.parseInt(st.nextToken());
-			if(end < start)
-			{
-				// I'm not sure when this can happen,
-				// but it does sometimes, witness the
-				// jEdit bug tracker.
-				continue;
-			}
-
-			Selection sel;
-			if("range".equals(type))
-				sel = new Selection.Range(start,end);
-			else //if(type.equals("rect"))
-				sel = new Selection.Rect(start,end);
-
-			selection.add(sel);
-		}
-
-		Selection[] returnValue = new Selection[selection.size()];
-		returnValue = selection.toArray(returnValue);
-		return returnValue;
 	} //}}}
 
 	//{{{ trimToLimit() method
