@@ -112,29 +112,7 @@ public class Abbrevs
 		if(lineText.charAt(pos-1) == '#')
 		{
 			wordStart = lineText.indexOf('#');
-			wordStart = TextUtilities.findWordStart(lineText,wordStart,
-				buffer.getStringProperty("noWordSep") + '#');
-
-			abbrev = lineText.substring(wordStart,pos - 1);
-
-			// positional parameters will be inserted where $1, $2, $3, ...
-			// occurs in the expansion
-
-			int lastIndex = 0;
-			for(int i = 0; i < abbrev.length(); i++)
-			{
-				if(abbrev.charAt(i) == '#')
-				{
-					m_pp.addElement(abbrev.substring(lastIndex,i));
-					lastIndex = i + 1;
-				}
-			}
-
-			m_pp.addElement(abbrev.substring(lastIndex));
-
-			// the first element of pp is the abbrev itself
-			abbrev = m_pp.elementAt(0);
-			m_pp.removeElementAt(0);
+			abbrev = handlePositionalAbbrev(buffer,lineText,pos, wordStart);
 		} //}}}
 		//{{{ Handle ordinary abbrevs
 		else
@@ -152,42 +130,80 @@ public class Abbrevs
 		//{{{ Maybe show add abbrev dialog
 		if(expand == null)
 		{
-			if(add)
-				new AddAbbrevDialog(view,abbrev);
-
-			return false;
+			return displayAbbrevDialog(view, add, abbrev);
 		} //}}}
 		//{{{ Insert the expansion
 		else
 		{
-			buffer.remove(lineStart + wordStart,
+			return insertExpansion(expand, view, textArea, lineStart, wordStart, pos);
+		} //}}}
+	} //}}}
+
+	private static String handlePositionalAbbrev(Buffer buffer, String lineText, int pos, int wordStart){
+		String abbrev;
+
+		wordStart = TextUtilities.findWordStart(lineText,wordStart,
+				buffer.getStringProperty("noWordSep") + '#');
+
+		abbrev = lineText.substring(wordStart,pos - 1);
+
+		// positional parameters will be inserted where $1, $2, $3, ...
+		// occurs in the expansion
+
+		int lastIndex = 0;
+		for(int i = 0; i < abbrev.length(); i++)
+		{
+			if(abbrev.charAt(i) == '#')
+			{
+				m_pp.addElement(abbrev.substring(lastIndex,i));
+				lastIndex = i + 1;
+			}
+		}
+
+		m_pp.addElement(abbrev.substring(lastIndex));
+
+		// the first element of pp is the abbrev itself
+		abbrev = m_pp.elementAt(0);
+		m_pp.removeElementAt(0);
+		return abbrev;
+	}
+
+	private static boolean displayAbbrevDialog(View view, boolean add, String abbrev){
+		if(add)
+			new AddAbbrevDialog(view,abbrev);
+
+		return false;
+	}
+
+	private static boolean insertExpansion(Expansion expand, View view, TextArea textArea, int lineStart, int wordStart, int pos){
+
+		Buffer buffer = view.getBuffer();
+		buffer.remove(lineStart + wordStart,
 				pos - wordStart);
 
-			int whitespace = buffer.insertIndented(
+		int whitespace = buffer.insertIndented(
 				lineStart + wordStart,
 				expand.text);
 
-			int newlines = countNewlines(expand.text,
+		int newlines = countNewlines(expand.text,
 				expand.caretPosition);
 
-			if(expand.caretPosition != -1)
-			{
-				textArea.setCaretPosition(lineStart + wordStart
+		if(expand.caretPosition != -1)
+		{
+			textArea.setCaretPosition(lineStart + wordStart
 					+ expand.caretPosition
 					+ newlines * whitespace);
-			}
-			if(expand.posParamCount != m_pp.size())
-			{
-				view.getStatus().setMessageAndClear(
+		}
+		if(expand.posParamCount != m_pp.size())
+		{
+			view.getStatus().setMessageAndClear(
 					jEdit.getProperty(
-					"view.status.incomplete-abbrev",
-					new Integer[] { Integer.valueOf(m_pp.size()),
-					Integer.valueOf(expand.posParamCount) }));
-			}
-
-			return true;
-		} //}}}
-	} //}}}
+							"view.status.incomplete-abbrev",
+							new Integer[] { Integer.valueOf(m_pp.size()),
+									Integer.valueOf(expand.posParamCount) }));
+		}
+		return true;
+	}
 
 	//{{{ getGlobalAbbrevs() method
 	/**
