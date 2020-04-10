@@ -5,7 +5,8 @@
 	 xmlns:launch4j="antlib:net.sf.launch4j.ant"
 	 xmlns:jarbundler="antlib:com.ultramixer.jarbundler"
 	 xmlns:fop="antlib:org.apache.fop.tools.anttasks"
-	 xmlns:ivy="antlib:org.apache.ivy.ant">
+	 xmlns:ivy="antlib:org.apache.ivy.ant"
+	 xmlns:sonar="antlib:org.sonar.ant">
 	<description>
 		This is an ant build.xml file for building jEdit - Programmer's Text Editor.
 	</description>
@@ -21,6 +22,15 @@
 	<!-- based on http://packages.slackverse.org/?v=1&p=92 -->
 	<property name="slackware.target.java.version"
 		  value="1_8_0"/>
+	
+	<property name="sonar.host.url" 
+		value="http://localhost:9000" />
+	<!-- Define the SonarQube project properties -->
+	<property name="sonar.projectKey" value="jEdit" />
+	<property name="sonar.projectName" value="jEdit" />
+	<property name="sonar.projectVersion" value="1.0" />
+	<property name="sonar.sources" value="org,test,installer,com,de" />
+	<property name="sonar.java.binaries" value="build" />
 
 	<!-- Various Paths -->
 	<property name="config.lib.dir"
@@ -63,6 +73,16 @@
 		  value="true"/>
 	<property name="config.build.compilerarg"
 		  value="-Xlint:unchecked -Xlint:finally -Xlint:fallthrough -Xmaxwarns 1000"/>
+	
+	<target name="sonar">
+	    <taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">
+	        <!-- Update the following line, or put the "sonarqube-ant-task-*.jar" file in your "$HOME/.ant/lib" folder -->
+	        <classpath path="D:/sonarqube-8.2.0.32929/lib/sonarqube-ant-task-2.7.0.1612.jar" />
+	    </taskdef>
+	 
+	    <!-- Execute SonarScanner for Ant Analysis -->
+	    <sonar:sonar />
+	</target>
 
 	<target name="init"
 		unless="init.done">
@@ -478,7 +498,7 @@
 		description="run unit tests">
 		<delete dir="${build.dir}/test/raw-reports"/>
 		<mkdir dir="${build.dir}/test/raw-reports"/>
-		<junit fork="true"
+		<junit fork="false"
 		       forkmode="once"
 		       printsummary="true"
 		       failureproperty="tests.failed"
